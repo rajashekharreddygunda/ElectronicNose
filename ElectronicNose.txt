@@ -1,0 +1,98 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
+
+const int MQ3_PIN = A0;
+const int MQ135_PIN = A1;
+const int MQ7_PIN = A2;
+const int MQ8_PIN = A3;
+
+const float RL_MQ3 = 10000;
+const float RL_MQ135 = 10000;
+const float RL_MQ7 = 10000;
+const float RL_MQ8 = 5000;
+
+const float R0_MQ3 = 23369.910;
+const float R0_MQ135 = 1326.9465;
+const float R0_MQ7 = 1056.725212;
+const float R0_MQ8 = 6.769;
+
+const float A_MQ3 = 0.526, B_MQ3 = -0.698;
+const float A_MQ135 = 5.759, B_MQ135 = -0.380;
+const float A_MQ7 = 20.207, B_MQ7 = -0.698;
+const float A_MQ8 = 37034, B_MQ8 = -1.522;
+
+float calculateRs(float sensorValue, float RL);
+float calculatePPM(float sensorRs, float R0, float A, float B);
+void displayGasInfo(const char* gasName, float ppm);
+
+void setup() {
+  lcd.init();
+  lcd.begin(16, 2);
+  lcd.backlight();
+  lcd.clear();
+  lcd.print("Gas Detection");
+  delay(2000);
+
+  Serial.begin(9600); 
+  Serial.println("Gas Detection System Initialized");
+}
+
+void loop() {
+  int mq3_value = analogRead(MQ3_PIN);
+  int mq135_value = analogRead(MQ135_PIN);
+  int mq7_value = analogRead(MQ7_PIN);
+  int mq8_value = analogRead(MQ8_PIN);
+
+  float Rs_mq3 = calculateRs(mq3_value, RL_MQ3);
+  float Rs_mq135 = calculateRs(mq135_value, RL_MQ135);
+  float Rs_mq7 = calculateRs(mq7_value, RL_MQ7);
+  float Rs_mq8 = calculateRs(mq8_value, RL_MQ8);
+
+  float ppm_mq3 = calculatePPM(Rs_mq3, R0_MQ3, A_MQ3, B_MQ3);
+  float ppm_mq135 = calculatePPM(Rs_mq135, R0_MQ135, A_MQ135, B_MQ135);
+  float ppm_mq7 = calculatePPM(Rs_mq7, R0_MQ7, A_MQ7, B_MQ7);
+  float ppm_mq8 = calculatePPM(Rs_mq8, R0_MQ8, A_MQ8, B_MQ8);
+
+  float ethanol_ppm = ppm_mq3;
+  float co_ppm = ppm_mq7;
+  float ammonia_ppm = ppm_mq135;
+  float hydrogen_ppm = ppm_mq8;
+
+  lcd.clear();
+  displayGasInfo("Ethanol", ethanol_ppm);
+  delay(2000);
+  displayGasInfo("CO", co_ppm);
+  delay(2000);
+  displayGasInfo("Ammonia", ammonia_ppm);
+  delay(2000);
+  displayGasInfo("Hydrogen", hydrogen_ppm);
+  delay(2000);
+
+  Serial.println("Gas Concentrations (PPM):");
+  Serial.print("Ethanol: "); Serial.println(ethanol_ppm);
+  Serial.print("CO: "); Serial.println(co_ppm);
+  Serial.print("Ammonia: "); Serial.println(ammonia_ppm);
+  Serial.print("Hydrogen: "); Serial.println(hydrogen_ppm);
+  Serial.println("--------------------------");
+  delay(1000); 
+}
+
+float calculateRs(float sensorValue, float RL) {
+  float Vout = sensorValue * (5.0 / 1023.0);
+  return (5.0 * RL / Vout) - RL;
+}
+
+float calculatePPM(float sensorRs, float R0, float A, float B) {
+  float rs_ro_ratio = sensorRs / R0;
+  return pow(10, log(rs_ro_ratio / A) / B);
+}
+
+void displayGasInfo(const char* gasName, float ppm) {
+  lcd.setCursor(0, 0);
+  lcd.print(gasName);
+  lcd.setCursor(0, 1);
+  lcd.print("PPM: ");
+  lcd.print(ppm);
+}
