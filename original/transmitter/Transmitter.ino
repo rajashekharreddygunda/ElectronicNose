@@ -1,11 +1,9 @@
-//Transmitter code - FIXED for Arduino AVR (Uno/Nano/Mega)
+//Transmitter code 
 #include <Wire.h>
 #include <SPI.h>
 #include <LoRa.h> 
 
-// LoRa pin definitions for Arduino + XL1278/SX1278
-// For Arduino Uno/Nano: SCK=13, MISO=12, MOSI=11 (hardware SPI pins)
-#define SS 10    // NSS pin
+
 #define RST 9    // Reset pin
 #define DIO0 2   // DIO0 pin (interrupt capable)
 
@@ -38,7 +36,6 @@ void setup() {
   
   Serial.println("LoRa Sender Initializing...");
   
-  // Set LoRa pins (no SPI.begin() needed for AVR - uses hardware pins)
   LoRa.setPins(SS, RST, DIO0);
   
   if (!LoRa.begin(433E6)) {
@@ -46,7 +43,6 @@ void setup() {
     while (1);
   }
   
-  // Configure LoRa parameters
   LoRa.setSpreadingFactor(7);
   LoRa.setSignalBandwidth(125E3);
   LoRa.setCodingRate4(5);
@@ -89,12 +85,10 @@ void loop() {
     gas3 + "," + ppm3 + "," +
     gas4 + "," + ppm4;
 
-  // Send packet
   LoRa.beginPacket();
   LoRa.print(payload);
   LoRa.endPacket();
 
-  // Debug output
   Serial.println("=== Transmission ===");
   Serial.print("Sent: ");
   Serial.println(payload);
@@ -107,17 +101,17 @@ void loop() {
   Serial.print("Hydrogen(H2): "); Serial.println(ppm_mq8);
   Serial.println("----------------------------");
   
-  delay(3000);  // Increased delay to match receiver display cycle
+  delay(3000);  
 }
 
 float calculateRs(float sensorValue, float RL) {
   float Vout = sensorValue * (5.0 / 1023.0);
-  if (Vout == 0) Vout = 0.001;  // Prevent division by zero
+  if (Vout == 0) Vout = 0.001;  
   return (5.0 * RL / Vout) - RL;
 }
 
 float calculatePPM(float sensorRs, float R0, float A, float B) {
   float rs_ro_ratio = sensorRs / R0;
-  if (rs_ro_ratio <= 0) rs_ro_ratio = 0.001;  // Prevent log of negative
+  if (rs_ro_ratio <= 0) rs_ro_ratio = 0.001;  
   return pow(10, log(rs_ro_ratio / A) / B);
 }
