@@ -1,16 +1,14 @@
-//Receiver code - FIXED for Arduino AVR (Uno/Nano/Mega)
+//Receiver code 
 #include <Wire.h>
 #include <SPI.h>
 #include <LoRa.h>
 #include <LiquidCrystal_I2C.h>
 
-// LoRa pin definitions for Arduino + XL1278/SX1278
-// For Arduino Uno/Nano: SCK=13, MISO=12, MOSI=11 (hardware SPI pins)
 #define SS 10    // NSS pin
 #define RST 9    // Reset pin
 #define DIO0 2   // DIO0 pin (interrupt capable)
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // Change to 0x3F if needed
+LiquidCrystal_I2C lcd(0x27, 16, 2);  
 
 String gas1 = "";
 String ppm1 = "";
@@ -33,7 +31,6 @@ void setup() {
   
   Serial.println("LoRa Receiver Initializing...");
   
-  // Set LoRa pins (no SPI.begin() needed for AVR - uses hardware pins)
   LoRa.setPins(SS, RST, DIO0);
 
   if (!LoRa.begin(433E6)) {
@@ -43,7 +40,6 @@ void setup() {
     while (1);
   }
   
-  // Configure LoRa parameters (must match transmitter)
   LoRa.setSpreadingFactor(7);
   LoRa.setSignalBandwidth(125E3);
   LoRa.setCodingRate4(5);
@@ -78,7 +74,6 @@ void loop() {
     Serial.print("Length: ");
     Serial.println(packet.length());
 
-    // Split the received string
     int i1 = packet.indexOf(',');
     int i2 = packet.indexOf(',', i1 + 1);
     int i3 = packet.indexOf(',', i2 + 1);
@@ -87,7 +82,6 @@ void loop() {
     int i6 = packet.indexOf(',', i5 + 1);
     int i7 = packet.indexOf(',', i6 + 1);
 
-    // Check if parsing is valid
     if (i1 != -1 && i2 != -1 && i3 != -1 && i4 != -1 && 
         i5 != -1 && i6 != -1 && i7 != -1) {
       
@@ -105,7 +99,6 @@ void loop() {
 
       lastPacketTime = millis();
 
-      // Display one at a time
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print(gas1);
@@ -148,7 +141,6 @@ void loop() {
     }
   }
   
-  // Show "waiting" if no packet received for 15 seconds
   if (millis() - lastPacketTime > 15000 && lastPacketTime != 0) {
     lcd.clear();
     lcd.print("Waiting for");
