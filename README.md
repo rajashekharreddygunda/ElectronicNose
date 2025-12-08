@@ -4,6 +4,7 @@ An Electronic Nose (E-Nose) system capable of detecting and quantifying multiple
 This improved version includes LoRa long-range wireless communication and a solar-powered transmitter node, making it suitable for remote environmental monitoring.
 
 *Project Overview*
+
 This project uses four MQ gas sensors:
 MQ-3 – Ethanol
 MQ-135 – Ammonia
