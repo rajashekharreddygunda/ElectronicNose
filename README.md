@@ -15,3 +15,5 @@ The sensors are interfaced with an ATmega328P (Arduino UNO) at the transmitter e
 These values are sent wirelessly using the LoRa SX1278 433MHz module to a receiver node, where the data is displayed on an LCD and the serial monitor.
 
 The transmitter node is designed to run entirely on solar power, making the system ideal for long-term outdoor deployment.
+
+Future scope involves adapting to a 10W solar panel on the transmitter end for better working of the system without cycling the system for continuous data monitoring.
